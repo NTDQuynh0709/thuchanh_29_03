@@ -1,4 +1,3 @@
-
 import {
   View,
   Text,
@@ -8,17 +7,22 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  Platform,
+  StatusBar,
 } from "react-native";
 import React, { useState } from "react";
-
 
 export default function HomeScreen({ navigation }) {
   const goToDetail = (product) => {
     navigation.navigate("ProductDetail", { product });
   };
+
   const [activeTab, setActiveTab] = useState("Shop");
+
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -66,7 +70,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+        >
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.card}
@@ -131,7 +139,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalList}
+        >
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.card}
@@ -196,7 +208,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.groceryTopList}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.groceryTopList}
+        >
           <View style={[styles.categoryCard, { backgroundColor: "#F8E9D2" }]}>
             <Image
               source={require("../images/pulses.png")}
@@ -276,90 +292,121 @@ export default function HomeScreen({ navigation }) {
       </ScrollView>
 
       <View style={styles.tabBar}>
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => setActiveTab("Shop")}
-  >
-    <Image
-      source={require("../images/shop.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Shop" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => setActiveTab("Shop")}
+        >
+          <Image
+            source={require("../images/shop.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Shop" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Explore");
-      navigation.navigate("Explore");
-    }}
-  >
-    <Image
-      source={require("../images/explore.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Explore" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Explore");
+            navigation.navigate("Explore");
+          }}
+        >
+          <Image
+            source={require("../images/explore.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Explore" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => setActiveTab("Cart")}
-  >
-    <Image
-      source={require("../images/cart.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Cart" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Cart");
+            navigation.navigate("Cart");
+          }}
+        >
+          <Image
+            source={require("../images/cart.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Cart" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => setActiveTab("Favourite")}
-  >
-    <Image
-      source={require("../images/favourite.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Favourite" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Favourite");
+            navigation.navigate("Favourite");
+          }}
+        >
+          <Image
+            source={require("../images/favourite.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Favourite" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => setActiveTab("Account")}
-  >
-    <Image
-      source={require("../images/accout.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Account" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => setActiveTab("Account")}
+        >
+          <Image
+            source={require("../images/accout.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Account" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FCFCFC" },
-  scrollContent: { paddingTop: 14, paddingBottom: 20 },
-  logo: { width: 26, height: 32, alignSelf: "center", marginBottom: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FCFCFC",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 10 : 18,
+  },
+
+  scrollContent: {
+    paddingTop: 18,
+    paddingBottom: 20,
+  },
+
+  logo: {
+    width: 26,
+    height: 32,
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+
   locationRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 18,
   },
-  locationIcon: { fontSize: 13, marginRight: 5 },
-  locationText: { fontSize: 16, fontWeight: "600", color: "#181725" },
+
+  locationIcon: {
+    fontSize: 13,
+    marginRight: 5,
+  },
+
+  locationText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#181725",
+  },
+
   searchBox: {
     marginHorizontal: 24,
     height: 52,
@@ -370,8 +417,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 18,
   },
-  searchIcon: { width: 18, height: 18, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 14, color: "#181725" },
+
+  searchIcon: {
+    width: 18,
+    height: 18,
+    marginRight: 8,
+  },
+
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: "#181725",
+  },
+
   banner: {
     width: "86%",
     height: 115,
@@ -379,7 +437,13 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginBottom: 12,
   },
-  dotsRow: { flexDirection: "row", alignSelf: "center", marginBottom: 20 },
+
+  dotsRow: {
+    flexDirection: "row",
+    alignSelf: "center",
+    marginBottom: 20,
+  },
+
   dot: {
     width: 8,
     height: 8,
@@ -387,7 +451,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#D9D9D9",
     marginHorizontal: 3,
   },
-  activeDot: { backgroundColor: "#53B175", width: 18 },
+
+  activeDot: {
+    backgroundColor: "#53B175",
+    width: 18,
+  },
+
   sectionHeader: {
     marginHorizontal: 24,
     marginBottom: 16,
@@ -396,10 +465,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  sectionTitle: { fontSize: 24, fontWeight: "600", color: "#181725" },
-  seeAll: { fontSize: 16, color: "#53B175", fontWeight: "500" },
-  horizontalList: { paddingLeft: 24, paddingRight: 14, marginBottom: 20 },
-  groceryTopList: { paddingLeft: 24, paddingRight: 14, marginBottom: 18 },
+
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#181725",
+  },
+
+  seeAll: {
+    fontSize: 16,
+    color: "#53B175",
+    fontWeight: "500",
+  },
+
+  horizontalList: {
+    paddingLeft: 24,
+    paddingRight: 14,
+    marginBottom: 20,
+  },
+
+  groceryTopList: {
+    paddingLeft: 24,
+    paddingRight: 14,
+    marginBottom: 18,
+  },
+
   card: {
     width: 173,
     borderWidth: 1,
@@ -411,25 +501,39 @@ const styles = StyleSheet.create({
     marginRight: 15,
     backgroundColor: "#fff",
   },
+
   productImage: {
     width: 100,
     height: 80,
     alignSelf: "center",
     marginBottom: 22,
   },
+
   productTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#181725",
     marginBottom: 4,
   },
-  productSub: { fontSize: 14, color: "#7C7C7C", marginBottom: 24 },
+
+  productSub: {
+    fontSize: 14,
+    color: "#7C7C7C",
+    marginBottom: 24,
+  },
+
   priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  price: { fontSize: 18, fontWeight: "600", color: "#181725" },
+
+  price: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#181725",
+  },
+
   addBtn: {
     width: 46,
     height: 46,
@@ -438,12 +542,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   addText: {
     color: "#fff",
     fontSize: 24,
     lineHeight: 26,
     fontWeight: "500",
   },
+
   categoryCard: {
     width: 248,
     height: 105,
@@ -453,48 +559,50 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
   },
-  categoryImage: { width: 72, height: 72, marginRight: 14 },
-  categoryText: { fontSize: 20, fontWeight: "600", color: "#181725" },
+
+  categoryImage: {
+    width: 72,
+    height: 72,
+    marginRight: 14,
+  },
+
+  categoryText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#181725",
+  },
+
   gridRow: {
     flexDirection: "row",
     paddingHorizontal: 24,
     justifyContent: "space-between",
     marginBottom: 18,
   },
+
   tabBar: {
-  height: 100, // 👈 tăng lên
-  flexDirection: "row",
-  justifyContent: "space-around",
-  alignItems: "center",
-  backgroundColor: "#fff",
-  borderTopWidth: 1,
-  borderTopColor: "#eee",
-  paddingBottom: 10, // 👈 tránh bị cắt dưới
-},
+    height: 90,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingBottom: 10,
+  },
 
-tabItem: {
-  justifyContent: "center",
-  alignItems: "center",
-  flex: 1,
-},
+  tabItem: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
 
-tabIcon: {
-  width: 30,
-  height: 40,
-  tintColor: "#181725",
-},
+  tabIcon: {
+    width: 30,
+    height: 40,
+    tintColor: "#181725",
+  },
 
-activeIcon: {
-  tintColor: "#53B175", // 👈 xanh
-},
-
-tabText: {
-  fontSize: 12,
-  color: "#181725",
-},
-
-activeText: {
-  color: "#53B175",
-  fontWeight: "600",
-},
+  activeIcon: {
+    tintColor: "#53B175",
+  },
 });
