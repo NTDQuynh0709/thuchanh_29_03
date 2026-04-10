@@ -355,7 +355,10 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => setActiveTab("Account")}
+          onPress={() => {
+            setActiveTab("Account");
+            navigation.navigate("Account");
+          }}
         >
           <Image
             source={require("../images/accout.png")}

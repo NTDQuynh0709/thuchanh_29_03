@@ -173,11 +173,12 @@ export default function FavouriteScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.tabItem}
-          onPress={() => {
-            setActiveTab("Account");
-          }}
-        >
+  style={styles.tabItem}
+  onPress={() => {
+    setActiveTab("Account");
+    navigation.navigate("Account");
+  }}
+>
           <Image
             source={require("../images/accout.png")}
             style={[

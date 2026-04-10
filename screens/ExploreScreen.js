@@ -309,7 +309,10 @@ export default function ExploreScreen({ navigation, route }) {
 
         <TouchableOpacity
           style={styles.tabItem}
-          onPress={() => setActiveTab("Account")}
+          onPress={() => {
+            setActiveTab("Account");
+            navigation.navigate("Account");
+          }}
         >
           <Image
             source={require("../images/accout.png")}

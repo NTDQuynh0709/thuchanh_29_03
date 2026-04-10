@@ -9,6 +9,10 @@ import BeveragesScreen from "./screens/BeveragesScreen";
 import FilterScreen from "./screens/FilterScreen";
 import MyCartScreen from "./screens/MyCartScreen";
 import FavouriteScreen from "./screens/FavouriteScreen";
+import CheckoutScreen from "./screens/CheckoutScreen";
+import OrderAcceptedScreen from "./screens/OrderAcceptedScreen";
+import OrderErrorScreen from "./screens/OrderErrorScreen";
+import AccountScreen from "./screens/AccountScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +30,28 @@ export default function App() {
         <Stack.Screen name="Filter" component={FilterScreen} />
         <Stack.Screen name="Cart" component={MyCartScreen} />
         <Stack.Screen name="Favourite" component={FavouriteScreen} />
+
+        <Stack.Screen
+          name="Checkout"
+          component={CheckoutScreen}
+          options={{
+            presentation: "transparentModal",
+            animation: "slide_from_bottom",
+          }}
+        />
+
+        <Stack.Screen name="OrderAccepted" component={OrderAcceptedScreen} />
+          <Stack.Screen
+            name="OrderError"
+            component={OrderErrorScreen}
+            options={{
+              presentation: "transparentModal",
+              animation: "fade",
+            }}
+          />
+          <Stack.Screen name="Account" component={AccountScreen} />
+
+        
       </Stack.Navigator>
     </NavigationContainer>
   );

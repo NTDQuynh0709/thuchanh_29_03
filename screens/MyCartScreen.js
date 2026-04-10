@@ -140,7 +140,15 @@ export default function MyCartScreen({ navigation }) {
       </ScrollView>
 
       <View style={styles.checkoutArea}>
-        <TouchableOpacity style={styles.checkoutBtn} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.checkoutBtn}
+          activeOpacity={0.85}
+          onPress={() =>
+            navigation.navigate("Checkout", {
+              totalPrice: totalPrice,
+            })
+          }
+        >
           <Text style={styles.checkoutText}>Go to Checkout</Text>
 
           <View style={styles.totalBadge}>
@@ -217,11 +225,12 @@ export default function MyCartScreen({ navigation }) {
   </TouchableOpacity>
 
   <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Account");
-    }}
-  >
+  style={styles.tabItem}
+  onPress={() => {
+    setActiveTab("Account");
+    navigation.navigate("Account");
+  }}
+>
     <Image
       source={require("../images/accout.png")}
       style={[
