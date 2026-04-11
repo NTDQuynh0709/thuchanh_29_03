@@ -30,6 +30,9 @@ export default function CheckoutScreen({ navigation, route }) {
 
       await AsyncStorage.setItem("orders", JSON.stringify(updatedOrders));
 
+      // Xóa giỏ hàng sau khi đặt hàng
+      await AsyncStorage.setItem("cartItems", JSON.stringify([]));
+
       navigation.navigate("OrderAccepted");
     } catch (error) {
       console.log("Save order error:", error);
