@@ -9,6 +9,7 @@ import {
   Platform,
   StatusBar,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const menuItems = [
   {
@@ -55,6 +56,20 @@ const menuItems = [
 
 export default function AccountScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState("Account");
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.multiRemove(["token", "user"]);
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      console.log("Logout error:", error);
+      alert("Đăng xuất thất bại");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -104,14 +119,18 @@ export default function AccountScreen({ navigation }) {
       </View>
 
       <View style={styles.logoutWrap}>
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85}>
-          <Image
-                source={require("../images/Group 6892.png")}
-                style={styles.logoutIcon}
-                />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-      </View>
+  <TouchableOpacity
+    style={styles.logoutBtn}
+    activeOpacity={0.85}
+    onPress={handleLogout}
+  >
+    <Image
+      source={require("../images/Group 6892.png")}
+      style={styles.logoutIcon}
+    />
+    <Text style={styles.logoutText}>Log Out</Text>
+  </TouchableOpacity>
+</View>
 
       <View style={styles.tabBar}>
   <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,67 +9,72 @@ import {
   ScrollView,
   Platform,
   StatusBar,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 
-const initialCart = [
-  {
-    id: 1,
-    name: "Bell Pepper Red",
-    unit: "1kg",
-    price: 4.99,
-    qty: 1,
-    image: require("../images/bell_pepper_red.png"),
-  },
-  {
-    id: 2,
-    name: "Egg Chicken Red",
-    unit: "4pcs",
-    price: 1.99,
-    qty: 1,
-    image: require("../images/anh5.png"),
-  },
-  {
-    id: 3,
-    name: "Organic Bananas",
-    unit: "12kg",
-    price: 3.0,
-    qty: 1,
-    image: require("../images/banana.png"),
-  },
-  {
-    id: 4,
-    name: "Ginger",
-    unit: "250gm",
-    price: 2.99,
-    qty: 1,
-    image: require("../images/ginger.png"),
-  },
-];
+const CART_KEY = "@cart_items";
+
+const IMAGE_MAP = {
+  banana: require("../images/banana.png"),
+  apple: require("../images/apple.png"),
+  bell_pepper_red: require("../images/bell_pepper_red.png"),
+  ginger: require("../images/ginger.png"),
+  beef: require("../images/beef.png"),
+  chicken: require("../images/chicken.png"),
+  egg: require("../images/anh5.png"),
+};
 
 export default function MyCartScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState("Cart");
-  const [cartItems, setCartItems] = useState(initialCart);
+  const [cartItems, setCartItems] = useState([]);
 
-  const increaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, qty: item.qty + 1 } : item
-      )
-    );
+  const loadCart = async () => {
+    try {
+      const storedCart = await AsyncStorage.getItem(CART_KEY);
+      const cart = storedCart ? JSON.parse(storedCart) : [];
+      setCartItems(cart);
+    } catch (error) {
+      console.log("Load cart error:", error);
+    }
   };
 
-  const decreaseQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, qty: item.qty > 1 ? item.qty - 1 : 1 }
-          : item
-      )
-    );
+  const saveCart = async (updatedCart) => {
+    try {
+      setCartItems(updatedCart);
+      await AsyncStorage.setItem(CART_KEY, JSON.stringify(updatedCart));
+    } catch (error) {
+      console.log("Save cart error:", error);
+      Alert.alert("Lỗi", "Không thể cập nhật giỏ hàng");
+    }
   };
 
-  const removeItem = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
+  useFocusEffect(
+    useCallback(() => {
+      loadCart();
+    }, [])
+  );
+
+  const increaseQty = async (id) => {
+    const updatedCart = cartItems.map((item) =>
+      item.id === id ? { ...item, qty: item.qty + 1 } : item
+    );
+    await saveCart(updatedCart);
+  };
+
+  const decreaseQty = async (id) => {
+    const updatedCart = cartItems.map((item) =>
+      item.id === id
+        ? { ...item, qty: item.qty > 1 ? item.qty - 1 : 1 }
+        : item
+    );
+    await saveCart(updatedCart);
+  };
+
+  const removeItem = async (id) => {
+    const updatedCart = cartItems.filter((item) => item.id !== id);
+    await saveCart(updatedCart);
   };
 
   const totalPrice = useMemo(() => {
@@ -84,162 +89,170 @@ export default function MyCartScreen({ navigation }) {
         <Text style={styles.headerTitle}>My Cart</Text>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {cartItems.map((item) => (
-          <View key={item.id} style={styles.cartItemWrap}>
-            <View style={styles.cartItem}>
-              <Image
-                source={item.image}
-                style={styles.productImage}
-                resizeMode="contain"
-              />
+      {cartItems.length === 0 ? (
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyTitle}>Giỏ hàng đang trống</Text>
+          <TouchableOpacity
+            style={styles.shopBtn}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Text style={styles.shopBtnText}>Mua ngay</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {cartItems.map((item) => (
+              <View key={item.id} style={styles.cartItemWrap}>
+                <View style={styles.cartItem}>
+                  <Image
+                    source={IMAGE_MAP[item.imageKey]}
+                    style={styles.productImage}
+                    resizeMode="contain"
+                  />
 
-              <View style={styles.infoSection}>
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productSub}>{item.unit}, Price</Text>
+                  <View style={styles.infoSection}>
+                    <Text style={styles.productName}>{item.name}</Text>
+                    <Text style={styles.productSub}>{item.unit}, Price</Text>
 
-                <View style={styles.bottomRow}>
-                  <View style={styles.qtyRow}>
-                    <TouchableOpacity
-                      style={styles.qtyBtn}
-                      onPress={() => decreaseQty(item.id)}
-                    >
-                      <Text style={styles.minusText}>−</Text>
-                    </TouchableOpacity>
+                    <View style={styles.bottomRow}>
+                      <View style={styles.qtyRow}>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => decreaseQty(item.id)}
+                        >
+                          <Text style={styles.minusText}>−</Text>
+                        </TouchableOpacity>
 
-                    <Text style={styles.qtyText}>{item.qty}</Text>
+                        <Text style={styles.qtyText}>{item.qty}</Text>
 
-                    <TouchableOpacity
-                      style={styles.qtyBtn}
-                      onPress={() => increaseQty(item.id)}
-                    >
-                      <Text style={styles.plusText}>+</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => increaseQty(item.id)}
+                        >
+                          <Text style={styles.plusText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      <Text style={styles.itemPrice}>
+                        ${(item.price * item.qty).toFixed(2)}
+                      </Text>
+                    </View>
                   </View>
 
-                  <Text style={styles.itemPrice}>
-                    ${(item.price * item.qty).toFixed(2)}
-                  </Text>
+                  <TouchableOpacity
+                    style={styles.closeBtn}
+                    onPress={() => removeItem(item.id)}
+                  >
+                    <Text style={styles.closeText}>✕</Text>
+                  </TouchableOpacity>
                 </View>
+
+                <View style={styles.divider} />
               </View>
+            ))}
+          </ScrollView>
 
-              <TouchableOpacity
-                style={styles.closeBtn}
-                onPress={() => removeItem(item.id)}
-              >
-                <Text style={styles.closeText}>✕</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.checkoutArea}>
+            <TouchableOpacity
+              style={styles.checkoutBtn}
+              activeOpacity={0.85}
+              onPress={() =>
+                navigation.navigate("Checkout", {
+                  totalPrice: totalPrice,
+                })
+              }
+            >
+              <Text style={styles.checkoutText}>Go to Checkout</Text>
 
-            <View style={styles.divider} />
+              <View style={styles.totalBadge}>
+                <Text style={styles.totalBadgeText}>
+                  ${totalPrice.toFixed(2)}
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.checkoutArea}>
-        <TouchableOpacity
-          style={styles.checkoutBtn}
-          activeOpacity={0.85}
-          onPress={() =>
-            navigation.navigate("Checkout", {
-              totalPrice: totalPrice,
-            })
-          }
-        >
-          <Text style={styles.checkoutText}>Go to Checkout</Text>
-
-          <View style={styles.totalBadge}>
-            <Text style={styles.totalBadgeText}>
-              ${totalPrice.toFixed(2)}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+        </>
+      )}
 
       <View style={styles.tabBar}>
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Shop");
-      navigation.navigate("Home");
-    }}
-  >
-    <Image
-      source={require("../images/shop.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Shop" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Shop");
+            navigation.navigate("Home");
+          }}
+        >
+          <Image
+            source={require("../images/shop.png")}
+            style={[styles.tabIcon, activeTab === "Shop" && styles.activeIcon]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Explore");
-      navigation.navigate("Explore");
-    }}
-  >
-    <Image
-      source={require("../images/explore.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Explore" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Explore");
+            navigation.navigate("Explore");
+          }}
+        >
+          <Image
+            source={require("../images/explore.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Explore" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Cart");
-      navigation.navigate("Cart");
-    }}
-  >
-    <Image
-      source={require("../images/cart.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Cart" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Cart");
+            navigation.navigate("Cart");
+          }}
+        >
+          <Image
+            source={require("../images/cart.png")}
+            style={[styles.tabIcon, activeTab === "Cart" && styles.activeIcon]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={styles.tabItem}
-    onPress={() => {
-      setActiveTab("Favourite");
-      navigation.navigate("Favourite");
-    }}
-  >
-    <Image
-      source={require("../images/favourite.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Favourite" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Favourite");
+            navigation.navigate("Favourite");
+          }}
+        >
+          <Image
+            source={require("../images/favourite.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Favourite" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
 
-  <TouchableOpacity
-  style={styles.tabItem}
-  onPress={() => {
-    setActiveTab("Account");
-    navigation.navigate("Account");
-  }}
->
-    <Image
-      source={require("../images/accout.png")}
-      style={[
-        styles.tabIcon,
-        activeTab === "Account" && styles.activeIcon,
-      ]}
-    />
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => {
+            setActiveTab("Account");
+            navigation.navigate("Account");
+          }}
+        >
+          <Image
+            source={require("../images/accout.png")}
+            style={[
+              styles.tabIcon,
+              activeTab === "Account" && styles.activeIcon,
+            ]}
+          />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -412,40 +425,57 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
- tabBar: {
-  height: 90, // 👈 tăng lên
-  flexDirection: "row",
-  justifyContent: "space-around",
-  alignItems: "center",
-  backgroundColor: "#fff",
-  borderTopWidth: 1,
-  borderTopColor: "#eee",
-  paddingBottom: 10, // 👈 tránh bị cắt dưới
-},
+  tabBar: {
+    height: 90,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    paddingBottom: 10,
+  },
 
-tabItem: {
-  justifyContent: "center",
-  alignItems: "center",
-  flex: 1,
-},
+  tabItem: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+  },
 
-tabIcon: {
-  width: 30,
-  height: 40,
-  tintColor: "#181725",
-},
+  tabIcon: {
+    width: 30,
+    height: 40,
+    tintColor: "#181725",
+  },
 
-activeIcon: {
-  tintColor: "#53B175", // 👈 xanh
-},
+  activeIcon: {
+    tintColor: "#53B175",
+  },
 
-tabText: {
-  fontSize: 12,
-  color: "#181725",
-},
+  emptyWrap: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
 
-activeText: {
-  color: "#53B175",
-  fontWeight: "600",
-},
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#181725",
+    marginBottom: 16,
+  },
+
+  shopBtn: {
+    backgroundColor: "#53B175",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+
+  shopBtnText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });

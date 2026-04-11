@@ -9,15 +9,149 @@ import {
   Image,
   Platform,
   StatusBar,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const CART_KEY = "@cart_items";
+
+const PRODUCTS = [
+  {
+    id: "banana",
+    name: "Organic Bananas",
+    sub: "7pcs, Priceg",
+    unit: "7pcs",
+    price: 4.99,
+    imageKey: "banana",
+    description: "Fresh organic bananas from our store.",
+  },
+  {
+    id: "apple",
+    name: "Red Apple",
+    sub: "1kg, Priceg",
+    unit: "1kg",
+    price: 4.99,
+    imageKey: "apple",
+    description: "Sweet and fresh red apples.",
+  },
+  {
+    id: "bell_pepper_red",
+    name: "Bell Pepper Red",
+    sub: "1kg, Priceg",
+    unit: "1kg",
+    price: 4.99,
+    imageKey: "bell_pepper_red",
+    description: "Crisp and colorful bell peppers.",
+  },
+  {
+    id: "ginger",
+    name: "Ginger",
+    sub: "250gm, Priceg",
+    unit: "250gm",
+    price: 4.99,
+    imageKey: "ginger",
+    description: "Fresh ginger for cooking and tea.",
+  },
+  {
+    id: "beef",
+    name: "Beef Bone",
+    sub: "1kg, Priceg",
+    unit: "1kg",
+    price: 4.99,
+    imageKey: "beef",
+    description: "Fresh beef bone for soup and cooking.",
+  },
+  {
+    id: "chicken",
+    name: "Broiler Chicken",
+    sub: "1kg, Priceg",
+    unit: "1kg",
+    price: 4.99,
+    imageKey: "chicken",
+    description: "Fresh broiler chicken from our market.",
+  },
+];
+
+const IMAGE_MAP = {
+  banana: require("../images/banana.png"),
+  apple: require("../images/apple.png"),
+  bell_pepper_red: require("../images/bell_pepper_red.png"),
+  ginger: require("../images/ginger.png"),
+  beef: require("../images/beef.png"),
+  chicken: require("../images/chicken.png"),
+  pulses: require("../images/pulses.png"),
+  rice: require("../images/rice.png"),
+};
 
 export default function HomeScreen({ navigation }) {
+  const [activeTab, setActiveTab] = useState("Shop");
+
   const goToDetail = (product) => {
     navigation.navigate("ProductDetail", { product });
   };
 
-  const [activeTab, setActiveTab] = useState("Shop");
+  const addToCart = async (product) => {
+    try {
+      const storedCart = await AsyncStorage.getItem(CART_KEY);
+      const cart = storedCart ? JSON.parse(storedCart) : [];
+
+      const existingIndex = cart.findIndex((item) => item.id === product.id);
+
+      if (existingIndex !== -1) {
+        cart[existingIndex].qty += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          unit: product.unit,
+          price: product.price,
+          qty: 1,
+          imageKey: product.imageKey,
+        });
+      }
+
+      await AsyncStorage.setItem(CART_KEY, JSON.stringify(cart));
+      navigation.navigate("Cart");
+    } catch (error) {
+      console.log("Add to cart error:", error);
+      Alert.alert("Lỗi", "Không thể thêm sản phẩm vào giỏ hàng");
+    }
+  };
+
+  const renderProductCard = (product) => (
+    <TouchableOpacity
+      key={product.id}
+      activeOpacity={0.85}
+      style={styles.card}
+      onPress={() =>
+        goToDetail({
+          name: product.name,
+          sub: product.sub,
+          price: `$${product.price.toFixed(2)}`,
+          image: product.imageKey,
+          description: product.description,
+        })
+      }
+    >
+      <Image
+        source={IMAGE_MAP[product.imageKey]}
+        style={styles.productImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.productTitle}>{product.name}</Text>
+      <Text style={styles.productSub}>{product.sub}</Text>
+      <View style={styles.priceRow}>
+        <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => addToCart(product)}
+        >
+          <Text style={styles.addText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -36,6 +170,11 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.locationRow}>
           <Text style={styles.locationIcon}>📍</Text>
           <Text style={styles.locationText}>Dhaka, Banassre</Text>
+          
+        </View>
+        <View style={styles.locationRow}>
+          
+          <Text style={styles.locationText}>Nguyễn Thị Diễm Quỳnh-23810310350</Text>
         </View>
 
         <View style={styles.searchBox}>
@@ -75,61 +214,8 @@ export default function HomeScreen({ navigation }) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalList}
         >
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Organic Bananas",
-                sub: "7pcs, Priceg",
-                price: "$4.99",
-                image: "banana",
-                description: "Fresh organic bananas from our store.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/banana.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Organic Bananas</Text>
-            <Text style={styles.productSub}>7pcs, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Red Apple",
-                sub: "1kg, Priceg",
-                price: "$4.99",
-                image: "apple",
-                description: "Sweet and fresh red apples.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/apple.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Red Apple</Text>
-            <Text style={styles.productSub}>1kg, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          {renderProductCard(PRODUCTS[0])}
+          {renderProductCard(PRODUCTS[1])}
         </ScrollView>
 
         <View style={styles.sectionHeader}>
@@ -144,61 +230,8 @@ export default function HomeScreen({ navigation }) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalList}
         >
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Bell Pepper Red",
-                sub: "1kg, Priceg",
-                price: "$4.99",
-                image: "bell_pepper_red",
-                description: "Crisp and colorful bell peppers.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/bell_pepper_red.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Bell Pepper Red</Text>
-            <Text style={styles.productSub}>1kg, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Ginger",
-                sub: "250gm, Priceg",
-                price: "$4.99",
-                image: "ginger",
-                description: "Fresh ginger for cooking and tea.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/ginger.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Ginger</Text>
-            <Text style={styles.productSub}>250gm, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          {renderProductCard(PRODUCTS[2])}
+          {renderProductCard(PRODUCTS[3])}
         </ScrollView>
 
         <View style={styles.sectionHeader}>
@@ -215,7 +248,7 @@ export default function HomeScreen({ navigation }) {
         >
           <View style={[styles.categoryCard, { backgroundColor: "#F8E9D2" }]}>
             <Image
-              source={require("../images/pulses.png")}
+              source={IMAGE_MAP.pulses}
               style={styles.categoryImage}
               resizeMode="contain"
             />
@@ -224,7 +257,7 @@ export default function HomeScreen({ navigation }) {
 
           <View style={[styles.categoryCard, { backgroundColor: "#E8F1E3" }]}>
             <Image
-              source={require("../images/rice.png")}
+              source={IMAGE_MAP.rice}
               style={styles.categoryImage}
               resizeMode="contain"
             />
@@ -233,61 +266,8 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
 
         <View style={styles.gridRow}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Beef Bone",
-                sub: "1kg, Priceg",
-                price: "$4.99",
-                image: "beef",
-                description: "Fresh beef bone for soup and cooking.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/beef.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Beef Bone</Text>
-            <Text style={styles.productSub}>1kg, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.85}
-            style={styles.card}
-            onPress={() =>
-              goToDetail({
-                name: "Broiler Chicken",
-                sub: "1kg, Priceg",
-                price: "$4.99",
-                image: "chicken",
-                description: "Fresh broiler chicken from our market.",
-              })
-            }
-          >
-            <Image
-              source={require("../images/chicken.png")}
-              style={styles.productImage}
-              resizeMode="contain"
-            />
-            <Text style={styles.productTitle}>Broiler Chicken</Text>
-            <Text style={styles.productSub}>1kg, Priceg</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.price}>$4.99</Text>
-              <TouchableOpacity style={styles.addBtn}>
-                <Text style={styles.addText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+          {renderProductCard(PRODUCTS[4])}
+          {renderProductCard(PRODUCTS[5])}
         </View>
       </ScrollView>
 
@@ -298,10 +278,7 @@ export default function HomeScreen({ navigation }) {
         >
           <Image
             source={require("../images/shop.png")}
-            style={[
-              styles.tabIcon,
-              activeTab === "Shop" && styles.activeIcon,
-            ]}
+            style={[styles.tabIcon, activeTab === "Shop" && styles.activeIcon]}
           />
         </TouchableOpacity>
 
@@ -330,10 +307,7 @@ export default function HomeScreen({ navigation }) {
         >
           <Image
             source={require("../images/cart.png")}
-            style={[
-              styles.tabIcon,
-              activeTab === "Cart" && styles.activeIcon,
-            ]}
+            style={[styles.tabIcon, activeTab === "Cart" && styles.activeIcon]}
           />
         </TouchableOpacity>
 

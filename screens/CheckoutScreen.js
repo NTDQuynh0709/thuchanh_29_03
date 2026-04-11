@@ -8,19 +8,32 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-
-let nextOrderScreen = "accepted";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CheckoutScreen({ navigation, route }) {
   const totalPrice = route?.params?.totalPrice || 13.97;
+  const cartItems = route?.params?.cartItems || [];
 
-  const handlePlaceOrder = () => {
-    if (nextOrderScreen === "accepted") {
-      nextOrderScreen = "error";
+  const handlePlaceOrder = async () => {
+    try {
+      const newOrder = {
+        id: Date.now().toString(),
+        products: cartItems,
+        total: Number(totalPrice),
+        createdAt: new Date().toLocaleString(),
+      };
+
+      const existingOrders = await AsyncStorage.getItem("orders");
+      const parsedOrders = existingOrders ? JSON.parse(existingOrders) : [];
+
+      const updatedOrders = [newOrder, ...parsedOrders];
+
+      await AsyncStorage.setItem("orders", JSON.stringify(updatedOrders));
+
       navigation.navigate("OrderAccepted");
-    } else {
-      nextOrderScreen = "accepted";
-      navigation.replace("OrderError");
+    } catch (error) {
+      console.log("Save order error:", error);
+      alert("Lưu đơn hàng thất bại");
     }
   };
 
@@ -51,7 +64,7 @@ export default function CheckoutScreen({ navigation, route }) {
         <View style={styles.divider} />
 
         <TouchableOpacity style={styles.row}>
-          <Text style={styles.leftText}>Pament</Text>
+          <Text style={styles.leftText}>Payment</Text>
           <View style={styles.rightWrap}>
             <View style={styles.cardIcon}>
               <View style={styles.cardLeft} />
